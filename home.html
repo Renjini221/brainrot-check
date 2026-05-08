@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pick ur test</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+
+  <div class="top">
+    <p class="tag">quiz hub</p>
+    <h1>pick ur test</h1>
+    <p class="sub">two tests two vibes — pick one and find out sumthin about urself</p>
+  </div>
+
+  <div class="tests">
+    <a class="test" href="brain.html">
+      <div class="ico">💀</div>
+      <div class="info">
+        <div class="name">brainrot check</div>
+        <div class="desc">how deep in the rot are u rly</div>
+      </div>
+      <span class="arr">→</span>
+    </a>
+    <a class="test" href="person.html">
+      <div class="ico">🧠</div>
+      <div class="info">
+        <div class="name">personality test</div>
+        <div class="desc">find out what type of person u actually are</div>
+      </div>
+      <span class="arr">→</span>
+    </a>
+  </div>
+
+  <div class="row">
+    <span>recent results</span>
+    <button id="clr">clear all</button>
+  </div>
+
+  <div id="hist">
+    <p class="none">no results yet — take a test first</p>
+  </div>
+
+  <footer>results saved on ur device</footer>
+
+</div>
+<script>
+  function load() {
+    const keys = { brainrot_history: 'brainrot', personality_history: 'personality' };
+    let all = [];
+    Object.entries(keys).forEach(([k, lbl]) => {
+      JSON.parse(localStorage.getItem(k) || '[]').forEach(x => all.push({ ...x, type: lbl }));
+    });
+    const h = document.getElementById('hist');
+    if (!all.length) {
+      h.innerHTML = '<p class="none">no results yet — take a test first</p>';
+      return;
+    }
+    h.innerHTML = all.slice(0, 6).map(x => `
+      <div class="item">
+        <span>${x.result}</span>
+        <small>${x.type} · ${x.date}</small>
+      </div>`).join('');
+  }
+
+  document.getElementById('clr').onclick = () => {
+    localStorage.removeItem('brainrot_history');
+    localStorage.removeItem('personality_history');
+    load();
+  };
+
+  load();
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>brainrot check</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+
+  <a class="back" href="home.html">← back</a>
+  <h1>brainrot check</h1>
+  <p class="sub">answer these qns and we will tell if ur brainrotted</p>
+
+  <div id="area"></div>
+
+  <div class="hist" id="hist" style="display:none">
+    <div class="hlbl">
+      past results
+      <button id="clr">clear</button>
+    </div>
+    <div class="hlist" id="hlist"></div>
+  </div>
+
+</div>
+<script>
+const qs = [
+  { q: "how often u watch vids in 2x",      opts: [["always", 2], ["sometimes", 1], ["never", 0]] },
+  { q: "what u do when ur bored",            opts: [["open phone instantly", 2], ["think a bit then phone", 1], ["do something else", 0]] },
+  { q: "how long u stay without phone",      opts: [["cant even try", 2], ["few mins ok", 1], ["hours no prob", 0]] },
+  { q: "u check ur phone how often",         opts: [["every few mins", 2], ["normal amount", 1], ["rarely", 0]] },
+  { q: "can u sit quietly doing nothing",    opts: [["no way", 2], ["for some time", 1], ["yeah easy", 0]] }
+];
+
+const results = [
+  { min: 8, e: "💀", lbl: "ur fully brainrotted bro",    dsc: "ur phone is basically an organ at this point", bg: "#fef2f2", tc: "#7f1d1d" },
+  { min: 4, e: "😵", lbl: "medium brainrot chill a bit",  dsc: "ur getting there but u can still be saved",    bg: "#fefce8", tc: "#78350f" },
+  { min: 0, e: "✅", lbl: "u safe no brainrot",            dsc: "respect honestly u got some self control",     bg: "#f0fdf4", tc: "#14532d" }
+];
+
+let cur = 0, score = 0, chosen = null;
+
+function getRes(s) { return results.find(r => s >= r.min); }
+
+function saveHist(lbl) {
+  let h = JSON.parse(localStorage.getItem("brainrot_history") || "[]");
+  h.unshift({ result: lbl, date: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) });
+  if (h.length > 5) h = h.slice(0, 5);
+  localStorage.setItem("brainrot_history", JSON.stringify(h));
+}
+
+function showHist() {
+  const h = JSON.parse(localStorage.getItem("brainrot_history") || "[]");
+  const sec = document.getElementById("hist");
+  const list = document.getElementById("hlist");
+  if (!h.length) { sec.style.display = "none"; return; }
+  sec.style.display = "block";
+  list.innerHTML = h.map(x => `<div class="hi"><span>${x.result}</span><small>${x.date}</small></div>`).join("");
+}
+
+function renderQ() {
+  const d = document.getElementById("area");
+  const q = qs[cur];
+  d.innerHTML = `
+    <p class="prog">q ${cur + 1} of ${qs.length}</p>
+    <div class="bar"><div class="fill" style="width:${(cur / qs.length) * 100}%"></div></div>
+    <p class="q">${q.q}</p>
+    <div class="opts">${q.opts.map(o => `<button class="opt" data-v="${o[1]}">${o[0]}</button>`).join("")}</div>
+    <button class="nxt" id="nxt">${cur === qs.length - 1 ? "see result →" : "next →"}</button>`;
+
+  chosen = null;
+  d.querySelectorAll(".opt").forEach(b => {
+    b.addEventListener("click", () => {
+      d.querySelectorAll(".opt").forEach(x => x.classList.remove("on"));
+      b.classList.add("on");
+      chosen = parseInt(b.dataset.v);
+      document.getElementById("nxt").style.display = "inline-block";
+    });
+  });
+  document.getElementById("nxt").addEventListener("click", () => {
+    if (chosen === null) return;
+    score += chosen;
+    cur++;
+    cur < qs.length ? renderQ() : thinking();
+  });
+}
+
+function thinking() {
+  const d = document.getElementById("area");
+  const dots = ["thinking .", "thinking ..", "thinking ..."];
+  let i = 0;
+  d.innerHTML = `<p class="think" id="t">thinking .</p>`;
+  const iv = setInterval(() => { i = (i + 1) % 3; const el = document.getElementById("t"); if (el) el.textContent = dots[i]; }, 450);
+  setTimeout(() => { clearInterval(iv); showRes(); }, 1800);
+}
+
+function showRes() {
+  const r = getRes(score);
+  saveHist(r.lbl);
+  const d = document.getElementById("area");
+  d.innerHTML = `
+    <div class="res">
+      <div class="emoji">${r.e}</div>
+      <span class="badge" style="background:${r.bg};color:${r.tc}">${r.lbl}</span>
+      <p class="lbl">${r.lbl}</p>
+      <p class="dsc">${r.dsc}</p>
+      <div class="btns">
+        <button id="again">try again</button>
+        <a class="btn" href="home.html">other test</a>
+      </div>
+    </div>`;
+  document.getElementById("again").onclick = () => { cur = 0; score = 0; chosen = null; renderQ(); };
+  showHist();
+}
+
+document.getElementById("clr").addEventListener("click", () => {
+  localStorage.removeItem("brainrot_history");
+  showHist();
+});
+
+renderQ();
+</script>
+</body>
+</html>
